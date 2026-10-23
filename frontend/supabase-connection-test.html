@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Supabase Connection Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    #output {
+      background: #f5f5f5;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #45a049; }
+  </style>
+</head>
+<body>
+  <h1>Supabase Connection Test</h1>
+  <button onclick="testConnection()">Test Connection</button>
+  <button onclick="testAuth()">Test Authentication</button>
+  <div id="output">Click a button to test...</div>
+
+  <script>
+    const SUPABASE_URL = 'https://lgwcylgzwejbcglcoqae.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxnd2N5bGd6d2VqYmNnbGNvcWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3NjMwNzMsImV4cCI6MjA2ODMzOTA3M30.yniGM_7_it3uNvl9T_SA70Y4oNGwXtjyM_lcPOL6Nv0';
+    
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    function log(message, isError = false) {
+      const output = document.getElementById('output');
+      const time = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.style.color = isError ? 'red' : 'green';
+      logEntry.textContent = `[${time}] ${message}`;
+      output.prepend(logEntry);
+      console.log(`[${time}]`, message);
+    }
+    
+    async function testConnection() {
+      log('Testing Supabase connection...');
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .limit(1);
+          
+        if (error) throw error;
+        log('✅ Successfully connected to Supabase!');
+        log(`Database response: ${JSON.stringify(data, null, 2)}`);
+      } catch (error) {
+        log(`❌ Connection failed: ${error.message}`, true);
+      }
+    }
+    
+    async function testAuth() {
+      log('Testing authentication...');
+      try {
+        // Try to sign up a test user
+        const testEmail = `test${Math.floor(Math.random() * 10000)}@example.com`;
+        const testPassword = 'testpassword123';
+        
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: testEmail,
+          password: testPassword,
+        });
+        
+        if (signUpError) throw signUpError;
+        
+        log(`✅ User created: ${testEmail}`);
+        log('Attempting to sign in...');
+        
+        // Try to sign in with the created user
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: testEmail,
+          password: testPassword,
+        });
+        
+        if (signInError) throw signInError;
+        
+        log(`✅ Successfully signed in! User ID: ${signInData.user.id}`);
+        
+        // Get current session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        
+        log('✅ Session data:');
+        log(JSON.stringify(sessionData, null, 2));
+        
+        // Sign out
+        await supabase.auth.signOut();
+        log('✅ Signed out successfully');
+        
+      } catch (error) {
+        log(`❌ Authentication test failed: ${error.message}`, true);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Supabase Direct Test</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    button { padding: 10px 15px; margin: 5px; }
+    #output { margin-top: 20px; white-space: pre; }
+  </style>
+</head>
+<body>
+  <h1>Supabase Direct Test</h1>
+  <button onclick="testConnection()">Test Connection</button>
+  <div id="output">Click the button to test...</div>
+
+  <script>
+    const SUPABASE_URL = 'https://lgwcylgzwejbcglcoqae.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxnd2N5bGd6d2VqYmNnbGNvcWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3NjMwNzMsImV4cCI6MjA2ODMzOTA3M30.yniGM_7_it3uNvl9T_SA70Y4oNGwXtjyM_lcPOL6Nv0';
+    
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    async function testConnection() {
+      const output = document.getElementById('output');
+      output.textContent = 'Testing connection to Supabase...';
+      
+      try {
+        // Test a simple query to the profiles table
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .limit(1);
+          
+        if (error) throw error;
+        
+        output.textContent = '✅ Successfully connected to Supabase!\n\n' + 
+          'Response: ' + JSON.stringify(data, null, 2);
+          
+      } catch (error) {
+        output.innerHTML = '❌ Error connecting to Supabase:\n' + 
+          error.message + '\n\n' +
+          'Please check your internet connection and make sure the Supabase URL and key are correct.';
+      }
+    }
+  </script>
+</body>
+</html>
